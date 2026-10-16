@@ -11,16 +11,27 @@ import Combine
 
 
 class HostManager: ObservableObject {
-    @Published var statusText = "Waiting for connection…"
-    @Published var isConnected = false
-    @Published var localIP: String = "…"
-    
     private var listener: NWListener?
     private var connection: NWConnection?
     private let port: NWEndpoint.Port = 8080
     
     init() {
-        localIP = getLocalIP()
-        startListening()
+        
     }
+    
+    private func startListening() {
+        guard let listener = try? NWListener(using: .tcp, on: port) else { return }
+        self.listener = listener
+        listener.service = NWListener.Service(name: "NetworkDemo", type: "_networkdemo._tcp")
+        listener.newConnectionHandler = { [weak self] connection in
+            self?.handleIncomingConnection(connection)
+        }
+        listener.start(queue: .main)
+    }
+    
+    func stop() {
+        connection?.cancel()
+        listener?.cancel()
+    }
+    
 }

@@ -16,9 +16,9 @@ struct ContentView: View {
     var body: some View {
         switch role {
         case .host:
-            HostView()
+            HostView(onStop: { role = nil })
         case .join:
-            JoinView()
+            JoinView(onStop: { role = nil })
         case .none:
             VStack (spacing:0){
                 Spacer()
