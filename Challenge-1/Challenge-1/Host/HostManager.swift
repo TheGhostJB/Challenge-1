@@ -24,7 +24,7 @@ class HostManager: ObservableObject {
         self.listener = listener
         listener.service = NWListener.Service(name: "NetworkDemo", type: "_networkdemo._tcp")
         listener.newConnectionHandler = { [weak self] connection in
-            self?.handleIncomingConnection(connection)
+            //self?.handleIncomingConnection(connection)
         }
         listener.start(queue: .main)
     }

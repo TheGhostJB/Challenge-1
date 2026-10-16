@@ -10,15 +10,19 @@ import SwiftUI
 struct ContentView: View {
     
     @State private var role: Role?
+    @State private var showHostModal = false
+    @State private var showJoinModal = false
     
     enum  Role { case host, join }
     
     var body: some View {
         switch role {
         case .host:
-            HostView(onStop: { role = nil })
+            //HostView(onStop: { role = nil })
+            Text("Host")
         case .join:
-            JoinView(onStop: { role = nil })
+            //JoinView(onStop: { role = nil })
+            Text("Join")
         case .none:
             VStack (spacing:0){
                 Spacer()
