@@ -11,4 +11,5 @@ import Network
 struct Lobby: Identifiable {
     let lobbyName: String
     let endpoint: NWEndpoint
+    var id: String { lobbyName }
 }

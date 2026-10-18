@@ -9,29 +9,67 @@ import Network
 import Foundation
 import Combine
 
-
 class HostManager: ObservableObject {
+    @Published var statusText = "Waiting for players…"
+    @Published var isConnected = false
+
     private var listener: NWListener?
     private var connection: NWConnection?
-    private let port: NWEndpoint.Port = 8080
-    
-    init() {
-        
-    }
-    
-    private func startListening() {
-        guard let listener = try? NWListener(using: .tcp, on: port) else { return }
-        self.listener = listener
-        listener.service = NWListener.Service(name: "NetworkDemo", type: "_networkdemo._tcp")
-        listener.newConnectionHandler = { [weak self] connection in
-            self?.handleIncomingConnection(connection)
+
+    func startLobby(name: String) {
+        guard listener == nil else { return }
+
+        do {
+            let listener = try NWListener(using: .tcp)
+            listener.service = NWListener.Service(name: name, type: "_trivianetwork._tcp")
+
+            listener.stateUpdateHandler = { state in
+                print("Listener state: \(state)")
+            }
+
+            listener.newConnectionHandler = { [weak self] newConnection in
+                self?.accept(newConnection)
+            }
+
+            listener.start(queue: .main)
+            self.listener = listener
+        } catch {
+            statusText = "Could not start lobby"
+            print("Listener error: \(error)")
         }
-        listener.start(queue: .main)
     }
-    
+
+    private func accept(_ newConnection: NWConnection) {
+        guard connection == nil else {
+            newConnection.cancel()
+            return
+        }
+
+        connection = newConnection
+
+        newConnection.stateUpdateHandler = { [weak self] state in
+            switch state {
+            case .ready:
+                self?.isConnected = true
+                self?.statusText = "Player connected"
+            case .failed, .cancelled:
+                self?.connection = nil
+                self?.isConnected = false
+                self?.statusText = "Waiting for players…"
+            default:
+                break
+            }
+        }
+
+        newConnection.start(queue: .main)
+    }
+
     func stop() {
         connection?.cancel()
+        connection = nil
         listener?.cancel()
+        listener = nil
+        isConnected = false
+        statusText = "Waiting for players…"
     }
-    
 }
