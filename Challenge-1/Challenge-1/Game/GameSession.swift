@@ -31,6 +31,8 @@ final class GameSession: ObservableObject {
     let joiner = JoinManager()
 
     @Published private(set) var role: PlayerRole?
+    @Published private(set) var myName = ""
+    @Published private(set) var opponentName: String?
     @Published private(set) var phase: GamePhase = .home
     @Published private(set) var lobbyName = ""
     @Published private(set) var settings = GameSettings.standard
@@ -47,7 +49,7 @@ final class GameSession: ObservableObject {
         host.onMessage = { [weak self] message in self?.handle(message) }
         host.onPlayerLeft = { [weak self] in self?.peerDisconnected() }
 
-        joiner.onConnected = { [weak self] in self?.isPeerConnected = true }
+        joiner.onConnected = { [weak self] in self?.joinerConnected() }
         joiner.onMessage = { [weak self] message in self?.handle(message) }
         joiner.onHostLeft = { [weak self] in self?.peerDisconnected() }
     }
@@ -58,6 +60,25 @@ final class GameSession: ObservableObject {
 
     var isWaitingForOpponent: Bool {
         iFinished && opponentResults == nil
+    }
+    
+    var myDisplayName: String {
+        myName.isEmpty ? (role == .host ? "Host" : "Player") : myName
+    }
+
+    var opponentDisplayName: String {
+        opponentName ?? (role == .host ? "Player" : "Host")
+    }
+    
+    func setName(_ newName: String) {
+        let clean = String(newName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(20))
+        myName = clean
+        if isPeerConnected { send(.name(myDisplayName)) }
+    }
+
+    private func joinerConnected() {
+        isPeerConnected = true
+        send(.name(myDisplayName))
     }
 
     var opponentReview: [ReviewItem]? {
@@ -139,6 +160,7 @@ final class GameSession: ObservableObject {
     private func playerJoined() {
         isPeerConnected = true
         send(.settings(settings))
+        send(.name(myDisplayName))
     }
 
     private func handle(_ message: Message) {
@@ -148,6 +170,8 @@ final class GameSession: ObservableObject {
             isJoinerReady = false
         case .ready(let isReady):
             isJoinerReady = isReady
+        case .name(let name):
+            opponentName = name
         case .start:
             beginPlaying()
         case .results(let answers):
@@ -201,6 +225,7 @@ final class GameSession: ObservableObject {
         myAnswers = []
         iFinished = false
         opponentResults = nil
+        opponentName = nil
     }
 
     private func send(_ message: Message) {

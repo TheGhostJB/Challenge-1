@@ -16,9 +16,9 @@ enum GameDifficulty: String, Codable, CaseIterable, Hashable, Identifiable {
 
     var title: LocalizedStringResource {
         switch self {
-        case .easy: "Easy"
-        case .medium: "Medium"
-        case .hard: "Hard"
+        case .easy: "Friends"
+        case .medium: "Best Friends"
+        case .hard: "Best Friends Forever"
         }
     }
 }

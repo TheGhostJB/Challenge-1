@@ -31,8 +31,8 @@ struct HomeView: View {
 
             Spacer()
 
-            LobbyPillButton(title: "Host", action: { showHostSheet = true }, font: .title3)
-            LobbyPillButton(title: "Join", action: { showJoinSheet = true }, font: .title3)
+            LobbyPillButton(title: "Create a Lobby", action: { showHostSheet = true }, font: .title3)
+            LobbyPillButton(title: "Join a Lobby", action: { showJoinSheet = true }, font: .title3)
         }
         .padding(.horizontal, 40)
         .padding(.bottom, 60)
@@ -151,7 +151,7 @@ private struct JoinSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
-                    Text("Join a lobby")
+                    Text("Active lobbies")
                         .font(.title2.bold())
                     Spacer()
                     CircularIconButton(title: "Close", systemImage: "xmark",
@@ -161,9 +161,6 @@ private struct JoinSheet: View {
                 }
 
                 Divider().overlay { Color(.lobbyIcon) }
-
-                Text("Active lobbies")
-                    .font(.headline)
 
                 if joiner.lobbies.isEmpty {
                     Text("Searching…")

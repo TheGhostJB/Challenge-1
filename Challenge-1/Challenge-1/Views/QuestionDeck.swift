@@ -102,6 +102,7 @@ struct QuestionCardFace: View {
 }
 
 struct AnswerCard: View {
+    let question: String
     @Binding var answer: String
     let isFocused: FocusState<Bool>.Binding
     let width: CGFloat
@@ -109,6 +110,14 @@ struct AnswerCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            Text(question)
+                .font(.headline)
+                .foregroundStyle(.black.opacity(0.6))
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Spacer(minLength: 24)
+            
             HStack(spacing: 12) {
                 TextField("Type their answer", text: $answer, axis: .vertical)
                     .font(.body)
@@ -139,6 +148,8 @@ struct AnswerCard: View {
             Rectangle()
                 .fill(Color(.answerFieldLine))
                 .frame(height: 1)
+            
+            Spacer(minLength: 24)
         }
         .padding(.horizontal, width * 0.13)
         .padding(.vertical, 24)
@@ -155,6 +166,7 @@ struct QuestionCardDeck: View {
     let cardHeight: CGFloat
     let flipAngle: Double
     let isAnswering: Bool
+    let onTap: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var sizeRatio: CGFloat { cardWidth / 180 }
@@ -191,6 +203,7 @@ struct QuestionCardDeck: View {
         }
         .frame(width: cardWidth, height: cardHeight)
         .contentShape(.rect)
+        .onTapGesture(perform: onTap)
         .simultaneousGesture(
             DragGesture(minimumDistance: 10)
                 .onChanged { deck.dragChanged($0) }

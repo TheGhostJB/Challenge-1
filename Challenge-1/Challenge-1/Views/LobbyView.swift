@@ -10,6 +10,8 @@ import SwiftUI
 struct LobbyView: View {
     @ObservedObject var session: GameSession
     @State private var showLeave = false
+    @State private var showRename = false
+    @State private var draftName = ""
 
     private var isHost: Bool { session.role == .host }
 
@@ -48,29 +50,61 @@ struct LobbyView: View {
         ) {
             session.leave()
         }
+        .alert("Your name", isPresented: $showRename) {
+            TextField("Name", text: $draftName)
+            Button("Cancel", role: .cancel) { }
+            Button("Save") { session.setName(draftName) }
+        } message: {
+            Text("The other player will see this name.")
+        }
     }
 
     // MARK: Pieces
 
     private var participants: some View {
         VStack(spacing: 0) {
-            LobbyParticipantRow(name: "Host", isReady: false, showsReadyBadge: false)
+            LobbyParticipantRow(name: hostRowName, isReady: false,
+                                showsReadyBadge: false, onEdit: hostRowEdit)
 
             Divider().overlay { Color(.lobbyIcon) }
 
             if session.isPeerConnected {
-                LobbyParticipantRow(name: "Player", isReady: session.isJoinerReady)
+                LobbyParticipantRow(name: joinerRowName, isReady: session.isJoinerReady,
+                                    onEdit: joinerRowEdit)
             } else {
                 LobbyParticipantRow(name: "Waiting for a player…", isReady: false,
                                     showsReadyBadge: false)
             }
         }
         .background(Color(.lobbyCard))
-        .clipShape(.rect(cornerRadius: 22))
+        .clipShape(RoundedRectangle(cornerRadius: 22))
         .overlay {
             RoundedRectangle(cornerRadius: 22)
                 .strokeBorder(Color(.lobbyOutline), lineWidth: 4)
         }
+    }
+    
+    private var hostRowName: String {
+        isHost ? session.myDisplayName : session.opponentDisplayName
+    }
+
+    private var joinerRowName: String {
+        isHost ? session.opponentDisplayName : session.myDisplayName
+    }
+
+    private var hostRowEdit: (() -> Void)? {
+        if isHost { return { editName() } }
+        return nil
+    }
+
+    private var joinerRowEdit: (() -> Void)? {
+        if isHost { return nil }
+        return { editName() }
+    }
+    
+    private func editName() {
+        draftName = session.myDisplayName
+        showRename = true
     }
 
     private var details: some View {

@@ -41,6 +41,14 @@ struct PlayView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         Spacer(minLength: isAnswerLayout ? 24 : 40)
+                        
+                        Text("You are answering questions about **\(session.opponentDisplayName)**")
+                            .font(.subheadline)
+                            .foregroundStyle(.black)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 28)
+                            .padding(.bottom, 16)
+
                         stage(width: width)
                         Spacer(minLength: 24)
                         controls(cardWidth: width)
@@ -95,11 +103,13 @@ struct PlayView: View {
 
         return ZStack {
             QuestionCardDeck(deck: deck, cardWidth: width, cardHeight: height,
-                             flipAngle: questionAngle, isAnswering: isFlipping)
+                             flipAngle: questionAngle, isAnswering: isFlipping,
+                             onTap: answerTapped)
                 .opacity(reduceMotion && isAnswerLayout ? 0 : 1)
                 .allowsHitTesting(!isFlipping)
 
-            AnswerCard(answer: $answer, isFocused: $isAnswerFocused,
+            AnswerCard(question: deck.currentCard?.text ?? "",
+                       answer: $answer, isFocused: $isAnswerFocused,
                        width: width, height: height)
                 .rotation3DEffect(.degrees(reduceMotion ? 0 : answerAngle), axis: (x: 0, y: 1, z: 0))
                 .opacity(reduceMotion && !isAnswerLayout ? 0 : 1)

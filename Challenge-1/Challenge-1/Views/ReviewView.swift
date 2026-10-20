@@ -18,7 +18,7 @@ struct ReviewView: View {
     var body: some View {
         VStack(spacing: 16) {
             HStack(alignment: .top) {
-                Text("Their answers")
+                Text("\(session.opponentDisplayName)'s answers")
                     .font(.title2.bold())
                     .foregroundStyle(.black)
                 Spacer(minLength: 16)

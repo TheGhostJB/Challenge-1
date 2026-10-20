@@ -13,8 +13,7 @@ struct LobbyScreenStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { Color.white.ignoresSafeArea(edges: [.horizontal, .bottom]) }
-            .background { Color(.lobbyStatusBar).ignoresSafeArea() }
+            .background { Color.white.ignoresSafeArea() }
             .preferredColorScheme(.light)
     }
 }
@@ -76,6 +75,7 @@ struct LobbyParticipantRow: View {
     let name: String
     let isReady: Bool
     var showsReadyBadge = true
+    var onEdit: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 28) {
@@ -85,6 +85,14 @@ struct LobbyParticipantRow: View {
             Text(name)
                 .font(.title2)
                 .foregroundStyle(.black)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            if let onEdit {
+                Button("Edit name", systemImage: "pencil", action: onEdit)
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.black)
+                    .frame(minWidth: 44, minHeight: 44)
+            }
             Spacer(minLength: 12)
             if showsReadyBadge && isReady {
                 Text("Ready")
