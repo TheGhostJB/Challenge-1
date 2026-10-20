@@ -12,9 +12,14 @@ import Combine
 class HostManager: ObservableObject {
     @Published var statusText = "Waiting for players…"
     @Published var isConnected = false
+    
+    var isAcceptingPlayers = true
+    var onMessage: ((Message) -> Void)?
+    var onPlayerJoined: (() -> Void)?
+    var onPlayerLeft: (() -> Void)?
 
     private var listener: NWListener?
-    private var connection: NWConnection?
+    private var peer: PeerConnection?
 
     func startLobby(name: String) {
         guard listener == nil else { return }
@@ -39,34 +44,40 @@ class HostManager: ObservableObject {
         }
     }
 
+
     private func accept(_ newConnection: NWConnection) {
-        guard connection == nil else {
+        guard isAcceptingPlayers, peer == nil else {
             newConnection.cancel()
             return
         }
 
-        connection = newConnection
+        let peer = PeerConnection(newConnection)
+        self.peer = peer
 
-        newConnection.stateUpdateHandler = { [weak self] state in
-            switch state {
-            case .ready:
-                self?.isConnected = true
-                self?.statusText = "Player connected"
-            case .failed, .cancelled:
-                self?.connection = nil
-                self?.isConnected = false
-                self?.statusText = "Waiting for players…"
-            default:
-                break
-            }
+        peer.onReady = { [weak self] in
+            self?.isConnected = true
+            self?.statusText = "Player connected"
+            self?.onPlayerJoined?()
         }
+        peer.onMessage = { [weak self] message in
+            self?.onMessage?(message)
+        }
+        peer.onClose = { [weak self] in
+            self?.peer = nil
+            self?.isConnected = false
+            self?.statusText = "Waiting for players…"
+            self?.onPlayerLeft?()
+        }
+        peer.start()
+    }
 
-        newConnection.start(queue: .main)
+    func send(_ message: Message) {
+        peer?.send(message)
     }
 
     func stop() {
-        connection?.cancel()
-        connection = nil
+        peer?.close()
+        peer = nil
         listener?.cancel()
         listener = nil
         isConnected = false

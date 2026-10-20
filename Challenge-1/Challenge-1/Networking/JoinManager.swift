@@ -14,10 +14,14 @@ class JoinManager: ObservableObject {
     @Published var statusText = "Disconnected"
     @Published var isConnected = false
     @Published var isSearching = false
-    
+
+    var onMessage: ((Message) -> Void)?
+    var onHostLeft: (() -> Void)?
+    var onConnected: (() -> Void)?
+
     private var browser: NWBrowser?
-    private var connection: NWConnection?
-    
+    private var peer: PeerConnection?
+
     func startBrowsing() {
         browser?.cancel()
 
@@ -42,45 +46,52 @@ class JoinManager: ObservableObject {
         isSearching = true
         browser.start(queue: .main)
     }
-    
+
     func stopBrowsing() {
         browser?.cancel()
         browser = nil
         lobbies = []
         isSearching = false
     }
-    
+
     func connect(to lobby: Lobby) {
         stopBrowsing()
         statusText = "Connecting…"
 
-        let connection = NWConnection(to: lobby.endpoint, using: .tcp)
-        self.connection = connection
+        let peer = PeerConnection(NWConnection(to: lobby.endpoint, using: .tcp))
+        self.peer = peer
 
-        connection.stateUpdateHandler = { [weak self] state in
-            switch state {
-            case .ready:
-                self?.isConnected = true
-                self?.statusText = "Connected to \(lobby.lobbyName)"
-            case .waiting:
-                self?.statusText = "Waiting…"
-            case .failed, .cancelled:
-                self?.isConnected = false
-                self?.statusText = "Disconnected"
-            default:
-                break
-            }
+        peer.onReady = { [weak self] in
+            self?.isConnected = true
+            self?.statusText = "Connected to \(lobby.lobbyName)"
+            self?.onConnected?()
         }
+        peer.onMessage = { [weak self] message in
+            self?.onMessage?(message)
+        }
+        peer.onClose = { [weak self] in
+            self?.peer = nil
+            self?.isConnected = false
+            self?.statusText = "Disconnected"
+            self?.onHostLeft?()
+        }
+        peer.start()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self, weak peer] in
+            guard let self, let peer, self.peer === peer, !self.isConnected else { return }
+            self.disconnect()
+            self.onHostLeft?()
+        }
+    }
 
-        connection.start(queue: .main)
+    func send(_ message: Message) {
+        peer?.send(message)
     }
 
     func disconnect() {
-        connection?.cancel()
-        connection = nil
+        peer?.close()
+        peer = nil
         isConnected = false
         statusText = "Disconnected"
     }
-
-
 }
