@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ReviewView: View {
     @ObservedObject var session: GameSession
+    @StateObject private var deck = CardDeckState<ReviewItem>()
 
     @State private var showLeave = false
     @State private var showEnd = false
@@ -39,6 +40,9 @@ struct ReviewView: View {
         .padding(.horizontal, 28)
         .padding(.top, 24)
         .padding(.bottom, 16)
+        .onChange(of: session.opponentResults, initial: true) { _, _ in
+            loadReviewCards()
+        }
         .confirmationPopup(isPresented: $showLeave,
                            message: "Are you sure you want to leave the game?") {
             session.leave()
@@ -49,36 +53,34 @@ struct ReviewView: View {
             session.endGame()
         }
     }
-
+    
     @ViewBuilder
     private var content: some View {
         if session.isWaitingForOpponent {
             VStack(spacing: 16) {
                 Spacer()
+
                 ProgressView()
+
                 Text("Waiting for the other player to finish…")
                     .font(.headline)
                     .foregroundStyle(.black)
+
                 Spacer()
             }
+        } else if deck.cards.isEmpty {
+            Text("No answers to review.")
+                .font(.headline)
+                .foregroundStyle(.black)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView {
-                VStack(spacing: 14) {
-                    ForEach(session.opponentReview ?? []) { item in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(item.question)
-                                .font(.headline)
-                            Text(item.answer)
-                                .font(.body)
-                        }
-                        .foregroundStyle(.black)
-                        .padding(20)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.questionCard), in: .rect(cornerRadius: 20))
-                    }
-                }
-            }
-            .scrollIndicators(.hidden)
+            ReviewDeckView(deck: deck)
         }
     }
+    
+    private func loadReviewCards() {
+        deck.load(session.opponentReview ?? [])
+    }
 }
+
+
