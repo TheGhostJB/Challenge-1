@@ -9,7 +9,7 @@ import SwiftUI
 
 struct PlayView: View {
     @ObservedObject var session: GameSession
-    @StateObject private var deck = QuestionDeckState()
+    @StateObject private var deck = CardDeckState<Question>()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var showLeave = false
@@ -102,11 +102,23 @@ struct PlayView: View {
         let height = cardHeight(for: width)
 
         return ZStack {
-            QuestionCardDeck(deck: deck, cardWidth: width, cardHeight: height,
-                             flipAngle: questionAngle, isAnswering: isFlipping,
-                             onTap: answerTapped)
-                .opacity(reduceMotion && isAnswerLayout ? 0 : 1)
-                .allowsHitTesting(!isFlipping)
+            CardDeck(
+                deck: deck,
+                cardWidth: width,
+                cardHeight: height,
+                flipAngle: questionAngle,
+                isAnswering: isFlipping,
+                onTap: answerTapped,
+                cardAccessibilityLabel: { $0.text }
+            ) { card in
+                QuestionCardFace(
+                    question: card.text,
+                    width: width,
+                    height: height
+                )
+            }
+            .opacity(reduceMotion && isAnswerLayout ? 0 : 1)
+            .allowsHitTesting(!isFlipping)
 
             AnswerCard(question: deck.currentCard?.text ?? "",
                        difficulty: deck.currentCard?.difficulty ?? .easy,
