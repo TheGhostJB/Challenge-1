@@ -32,6 +32,8 @@ final class GameSession: ObservableObject {
 
     @Published private(set) var role: PlayerRole?
     @Published private(set) var myName = ""
+    @Published private(set) var myAvatar: AvatarColor = .gray
+    @Published private(set) var opponentAvatar: AvatarColor = .gray
     @Published private(set) var opponentName: String?
     @Published private(set) var phase: GamePhase = .home
     @Published private(set) var lobbyName = ""
@@ -75,10 +77,18 @@ final class GameSession: ObservableObject {
         myName = clean
         if isPeerConnected { send(.name(myDisplayName)) }
     }
+    
+    func setAvatar(_ color: AvatarColor) {
+        myAvatar = color
+        if isPeerConnected {
+            send(.avatar(color.rawValue))
+        }
+    }
 
     private func joinerConnected() {
         isPeerConnected = true
         send(.name(myDisplayName))
+        send(.avatar(myAvatar.rawValue))
     }
 
     var opponentReview: [ReviewItem]? {
@@ -161,6 +171,7 @@ final class GameSession: ObservableObject {
         isPeerConnected = true
         send(.settings(settings))
         send(.name(myDisplayName))
+        send(.avatar(myAvatar.rawValue))
     }
 
     private func handle(_ message: Message) {
@@ -172,6 +183,8 @@ final class GameSession: ObservableObject {
             isJoinerReady = isReady
         case .name(let name):
             opponentName = name
+        case .avatar(let raw):
+            opponentAvatar = AvatarColor(rawValue: raw) ?? .gray
         case .start:
             beginPlaying()
         case .results(let answers):
@@ -226,6 +239,7 @@ final class GameSession: ObservableObject {
         iFinished = false
         opponentResults = nil
         opponentName = nil
+        opponentAvatar = .gray
     }
 
     private func send(_ message: Message) {

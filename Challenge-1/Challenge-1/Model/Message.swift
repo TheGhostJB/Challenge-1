@@ -15,7 +15,8 @@ struct AnswerEntry: Codable, Equatable {
 enum Message: Codable, Equatable {
     case settings(GameSettings)
     case ready(Bool)
-    case name(String) 
+    case name(String)
+    case avatar(Int)
     case start
     case results([AnswerEntry])
     case endGame
