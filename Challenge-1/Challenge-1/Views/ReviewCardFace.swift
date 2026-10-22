@@ -36,7 +36,7 @@ struct ReviewCardFace: View {
         .scrollBounceBehavior(.basedOnSize)
         .frame(width: width, height: height)
         .background(
-            Color(.questionCard),
+            Color(hex: 0xF3F2F7),
             in: .rect(cornerRadius: 36)
         )
         .clipShape(.rect(cornerRadius: 36))

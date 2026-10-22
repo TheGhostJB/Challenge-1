@@ -74,23 +74,7 @@ struct ReviewView: View {
                 .foregroundStyle(.black)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ScrollView {
-                VStack(spacing: 14) {
-                    ForEach(session.opponentReview ?? []) { item in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(item.question)
-                                .font(.headline)
-                            Text(item.answer)
-                                .font(.body)
-                        }
-                        .foregroundStyle(.black)
-                        .padding(20)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(hex: 0xF3F2F7), in: .rect(cornerRadius: 20))
-                    }
-                }
-            }
-            .scrollIndicators(.hidden)
+            ReviewDeckView(deck: deck)
         }
     }
     

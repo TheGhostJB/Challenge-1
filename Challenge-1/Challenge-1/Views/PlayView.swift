@@ -113,6 +113,7 @@ struct PlayView: View {
             ) { card in
                 QuestionCardFace(
                     question: card.text,
+                    difficulty: card.difficulty,
                     width: width,
                     height: height
                 )
