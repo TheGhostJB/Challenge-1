@@ -25,18 +25,19 @@ struct HomeView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Spacer()
+            HomeCardShowcase()
 
-            Text("Trivia Game")
-                .font(.largeTitle.bold())
+            Text("UGuess")
+                .font(.system(size: 44, weight: .heavy, design: .rounded))
                 .foregroundStyle(.black)
 
-            Spacer()
+            Spacer().frame(height: 24)
 
             LobbyPillButton(title: "Create a Lobby", action: { showHostSheet = true },font: .title3, style: .primary)
             LobbyPillButton(title: "Join a Lobby", action: { showJoinSheet = true },font: .title3, style: .dark)
         }
         .padding(.horizontal, 40)
+        .padding(.top, 70)
         .padding(.bottom, 60)
         .overlay(alignment: .topTrailing) {
             CircularIconButton(title: "How to play", systemImage: "questionmark",
@@ -71,6 +72,54 @@ struct HomeView: View {
         guard let lobby = pendingLobby else { return }
         pendingLobby = nil
         session.join(lobby)
+    }
+}
+
+private struct HomeCardShowcase: View {
+    @StateObject private var deck = CardDeckState<Question>()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let cardsPerDeck = 2
+
+    private var sampleCards: [Question] {
+        (0..<cardsPerDeck).flatMap { index in
+            GameDifficulty.allCases.compactMap { level -> Question? in
+                let questions = QuestionBank.questions(for: level)
+                return index < questions.count ? questions[index] : nil
+            }
+        }
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            let width = min(geometry.size.width * 0.62,
+                            geometry.size.height / 1.35 * 0.85,
+                            260)
+            let height = width * 1.35
+
+            CardDeck(
+                deck: deck,
+                cardWidth: width,
+                cardHeight: height,
+                flipAngle: 0,
+                isAnswering: false,
+                onTap: { },
+                cardAccessibilityLabel: { $0.text }
+            ) { card in
+                QuestionCardFace(question: card.text, difficulty: card.difficulty,
+                                 width: width, height: height)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .allowsHitTesting(false)
+            .task {
+                if deck.cards.isEmpty { deck.load(sampleCards) }
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(2.5))
+                    deck.cycleCard(direction: -1, cardWidth: width,
+                                   reduceMotion: reduceMotion)
+                }
+            }
+        }
     }
 }
 
@@ -289,7 +338,7 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 32) {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Welcome to").foregroundStyle(.black.opacity(0.6))
-                    Text("Trivia Game").foregroundStyle(.black)
+                    Text("UGuess").foregroundStyle(.black)
                 }
                 .font(.largeTitle.bold())
 
