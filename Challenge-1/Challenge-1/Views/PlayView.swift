@@ -43,7 +43,7 @@ struct PlayView: View {
                         Spacer(minLength: isAnswerLayout ? 24 : 40)
                         
                         Text("You are answering questions about **\(session.opponentDisplayName)**")
-                            .font(.subheadline)
+                            .font(.title3)
                             .foregroundStyle(.black)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 28)
@@ -109,6 +109,7 @@ struct PlayView: View {
                 .allowsHitTesting(!isFlipping)
 
             AnswerCard(question: deck.currentCard?.text ?? "",
+                       difficulty: deck.currentCard?.difficulty ?? .easy,
                        answer: $answer, isFocused: $isAnswerFocused,
                        width: width, height: height)
                 .rotation3DEffect(.degrees(reduceMotion ? 0 : answerAngle), axis: (x: 0, y: 1, z: 0))
@@ -122,7 +123,7 @@ struct PlayView: View {
     @ViewBuilder
     private func controls(cardWidth: CGFloat) -> some View {
         if isAnswerLayout {
-            LobbyPillButton(title: "Send Answer", action: sendAnswer, font: .title3)
+            LobbyPillButton(title: "Send Answer", action: sendAnswer, font: .title3, style: .primary)
                 .disabled(!isAnswerInputReady || cleanAnswer.isEmpty)
                 .opacity(cleanAnswer.isEmpty ? 0.4 : 1)
                 .padding(.horizontal, 28)
@@ -130,7 +131,7 @@ struct PlayView: View {
             HStack(spacing: 20) {
                 LobbyPillButton(title: "Discard", action: { discardTapped(cardWidth: cardWidth) },
                                 font: .title3)
-                LobbyPillButton(title: "Answer", action: answerTapped, font: .title3)
+                LobbyPillButton(title: "Answer", action: answerTapped, font: .title3, style: .primary)
             }
             .disabled(deck.isCycling || isFlipping)
             .opacity(isFlipping ? 0 : 1)

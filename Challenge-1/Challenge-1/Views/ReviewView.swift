@@ -74,7 +74,7 @@ struct ReviewView: View {
                         .foregroundStyle(.black)
                         .padding(20)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.questionCard), in: .rect(cornerRadius: 20))
+                        .background(Color(hex: 0xF3F2F7), in: .rect(cornerRadius: 20))
                     }
                 }
             }

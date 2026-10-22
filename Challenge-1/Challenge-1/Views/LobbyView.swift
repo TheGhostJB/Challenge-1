@@ -62,25 +62,17 @@ struct LobbyView: View {
     // MARK: Pieces
 
     private var participants: some View {
-        VStack(spacing: 0) {
-            LobbyParticipantRow(name: hostRowName, isReady: false,
-                                showsReadyBadge: false, onEdit: hostRowEdit)
-
-            Divider().overlay { Color(.lobbyIcon) }
+        VStack(spacing: 16) {
+            LobbyParticipantRow(name: hostRowName, isReady: false, showsReadyBadge: false,
+                                avatarColor: hostRowColor, onEdit: hostRowEdit)
 
             if session.isPeerConnected {
                 LobbyParticipantRow(name: joinerRowName, isReady: session.isJoinerReady,
-                                    onEdit: joinerRowEdit)
+                                    avatarColor: joinerRowColor, onEdit: joinerRowEdit)
             } else {
-                LobbyParticipantRow(name: "Waiting for a player…", isReady: false,
-                                    showsReadyBadge: false)
+                LobbyParticipantRow(name: "Waiting…", isReady: false,
+                                    showsReadyBadge: false, isSearching: true)
             }
-        }
-        .background(Color(.lobbyCard))
-        .clipShape(RoundedRectangle(cornerRadius: 22))
-        .overlay {
-            RoundedRectangle(cornerRadius: 22)
-                .strokeBorder(Color(.lobbyOutline), lineWidth: 4)
         }
     }
     
@@ -96,6 +88,14 @@ struct LobbyView: View {
         if isHost { return { editName() } }
         return nil
     }
+    
+    private var hostRowColor: AvatarColor {
+        isHost ? session.myAvatar : session.opponentAvatar
+    }
+
+    private var joinerRowColor: AvatarColor {
+        isHost ? session.opponentAvatar : session.myAvatar
+    }
 
     private var joinerRowEdit: (() -> Void)? {
         if isHost { return nil }
@@ -108,49 +108,66 @@ struct LobbyView: View {
     }
 
     private var details: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Image(systemName: "flag.checkered")
-                Text("Difficulty:")
-                Text(session.settings.difficulty.title).bold()
-                Spacer()
-            }
-            .padding(16)
+        VStack(spacing: 12) {
+            if isHost {
+                Menu {
+                    ForEach(GameDifficulty.allCases) { level in
+                        Button { change(difficulty: level) } label: { Text(level.title) }
+                    }
+                } label: {
+                    settingPill("Decks: \(deckTitle)", isEditable: true)
+                }
 
-            Divider().overlay { Color(.lobbyIcon) }
-
-            HStack {
-                Image(systemName: "questionmark.circle")
-                Text("Questions:")
-                Text("\(session.settings.rounds)").bold()
-                Spacer()
+                HStack {
+                    Text("Questions").font(.subheadline)
+                    Spacer()
+                    OptionStepper(value: questionsBinding, range: 1...10)
+                }
+                .foregroundStyle(.black)
+                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .glassCapsule()
+            } else {
+                settingPill("Decks: \(deckTitle)", isEditable: false)
+                settingPill("Questions: \(session.settings.rounds)", isEditable: false)
             }
-            .padding(16)
         }
-        .foregroundStyle(.black)
-        .background(Color(.joinLobbyDetailsBackground), in: .rect(cornerRadius: 12))
+    }
+
+    private var deckTitle: String {
+        String(localized: session.settings.difficulty.title)
+    }
+
+    private var questionsBinding: Binding<Int> {
+        Binding(
+            get: { session.settings.rounds },
+            set: { change(rounds: $0) }
+        )
+    }
+
+    @ViewBuilder
+    private func settingPill(_ title: String, isEditable: Bool) -> some View {
+        let label = HStack(spacing: 8) {
+            Text(title)
+            if isEditable {
+                Image(systemName: "chevron.up.chevron.down").font(.footnote)
+            }
+        }
+        .font(.subheadline)
+        .foregroundStyle(.black.opacity(isEditable ? 1 : 0.45))
+        .frame(maxWidth: .infinity, minHeight: 44)
+
+        if isEditable {
+            label.glassCapsule()
+        } else {
+            label.background(.white.opacity(0.25), in: .capsule)
+        }
     }
 
     @ViewBuilder
     private var actions: some View {
         if isHost {
             VStack(spacing: 16) {
-                Menu {
-                    ForEach(GameDifficulty.allCases) { level in
-                        Button { change(difficulty: level) } label: { Text(level.title) }
-                    }
-                } label: {
-                    pill("Change difficulty")
-                }
-
-                Menu {
-                    ForEach([3, 5, 10], id: \.self) { count in
-                        Button("\(count) questions") { change(rounds: count) }
-                    }
-                } label: {
-                    pill("Number of questions")
-                }
-
                 if !session.canStart {
                     Text(session.isPeerConnected ? "Waiting for the player to be ready"
                                                  : "Waiting for a player to join")
@@ -158,25 +175,16 @@ struct LobbyView: View {
                         .foregroundStyle(.gray)
                 }
 
-                LobbyPillButton(title: "START", action: session.startGame, font: .title3)
+                LobbyPillButton(title: "START", action: session.startGame, font: .title3, style: .primary)
                     .disabled(!session.canStart)
                     .opacity(session.canStart ? 1 : 0.4)
             }
         } else {
             LobbyPillButton(title: session.isJoinerReady ? "NOT READY" : "READY",
                             action: { session.setReady(!session.isJoinerReady) },
-                            font: .title3)
+                            font: .title3,
+                            style: session.isJoinerReady ? .secondary : .ready)
         }
-    }
-
-    private func pill(_ title: LocalizedStringKey) -> some View {
-        Text(title)
-            .font(.subheadline)
-            .foregroundStyle(.black)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, minHeight: 44)
-            .background(Color(.lobbyIcon), in: .capsule)
     }
 
     private func change(difficulty: GameDifficulty) {
