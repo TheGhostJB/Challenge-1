@@ -11,40 +11,46 @@ import SwiftUI
 struct ReviewCardFace: View {
     let question: String
     let answer: String
+    let ownerName: String
+    let difficulty: GameDifficulty
     let width: CGFloat
     let height: CGFloat
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Text(question)
-                    .font(.title2.bold().lowercaseSmallCaps())
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    
+        let theme = difficulty.theme
 
-                Text(answer)
-                    .font(.title3)
-                    .multilineTextAlignment(.center)
-            }
-            .foregroundStyle(.black)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, width * 0.13)
-            .padding(.vertical, 28)
+        VStack(spacing: 0) {
+            Text(question)
+                .font(.system(size: width * 0.075, weight: .heavy))
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.6)
+                .padding(.top, height * 0.12)
+
+            Spacer(minLength: 16)
+
+            Text("\(ownerName)'s answer:")
+                .font(.subheadline)
+                .opacity(0.8)
+                .padding(.bottom, 10)
+
+            Text(answer)
+                .font(.system(size: width * 0.09, weight: .heavy))
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.5)
+                .lineLimit(5)
+
+            Spacer(minLength: 16)
+
+            Text("uGuess")
+                .font(.footnote.weight(.bold))
+                .opacity(0.4)
         }
-        .scrollIndicators(.hidden)
-        .scrollBounceBehavior(.basedOnSize)
+        .foregroundStyle(theme.text)
+        .padding(.horizontal, width * 0.1)
+        .padding(.bottom, 20)
         .frame(width: width, height: height)
-        .background(
-            Color(hex: 0xF3F2F7),
-            in: .rect(cornerRadius: 36)
-        )
-        .clipShape(.rect(cornerRadius: 36))
-        .shadow(
-            color: .black.opacity(0.06),
-            radius: 2,
-            y: 1
-        )
+        .background(theme.gradient, in: .rect(cornerRadius: 36))
+        .shadow(color: .black.opacity(0.12), radius: 10, y: 6)
     }
 }
 
@@ -52,6 +58,8 @@ struct ReviewCardFace: View {
     ReviewCardFace(
         question: "AAAAAA",
         answer: "BBBBB",
+        ownerName: "Diego",
+        difficulty: .easy,
         width: 280,
         height: 378
     )

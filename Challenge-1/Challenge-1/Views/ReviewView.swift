@@ -30,7 +30,7 @@ struct ReviewView: View {
             content
 
             if isHost {
-                LobbyPillButton(title: "END GAME", action: { showEnd = true }, font: .title3)
+                LobbyPillButton(title: "END GAME", action: { showEnd = true }, font: .title3, style: .primary)
             } else {
                 Text("The host will end the game")
                     .font(.footnote)
@@ -74,7 +74,7 @@ struct ReviewView: View {
                 .foregroundStyle(.black)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
-            ReviewDeckView(deck: deck)
+            ReviewDeckView(deck: deck, ownerName: session.opponentDisplayName)
         }
     }
     

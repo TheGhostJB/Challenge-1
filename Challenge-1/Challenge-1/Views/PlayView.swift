@@ -153,7 +153,7 @@ struct PlayView: View {
     }
 
     private func cardWidth(for containerWidth: CGFloat) -> CGFloat {
-        min(containerWidth * 0.72, 340)
+        min(containerWidth * 0.72, 380)
     }
 
     private func cardHeight(for width: CGFloat) -> CGFloat {

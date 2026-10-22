@@ -24,6 +24,7 @@ struct ReviewItem: Identifiable {
     let id: Int
     let question: String
     let answer: String
+    let difficulty: GameDifficulty
 }
 
 final class GameSession: ObservableObject {
@@ -94,10 +95,12 @@ final class GameSession: ObservableObject {
     var opponentReview: [ReviewItem]? {
         guard let results = opponentResults else { return nil }
         return results.map { entry in
-            ReviewItem(
+            let question = QuestionBank.question(withID: entry.questionID)
+            return ReviewItem(
                 id: entry.questionID,
-                question: QuestionBank.question(withID: entry.questionID)?.text ?? "Unknown question",
-                answer: entry.answer
+                question: question?.text ?? "Unknown question",
+                answer: entry.answer,
+                difficulty: question?.difficulty ?? .easy
             )
         }
     }

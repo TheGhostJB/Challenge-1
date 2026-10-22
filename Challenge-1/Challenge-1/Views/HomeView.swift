@@ -33,12 +33,13 @@ struct HomeView: View {
 
             Spacer().frame(height: 24)
 
-            LobbyPillButton(title: "Create a Lobby", action: { showHostSheet = true },font: .title3, style: .primary)
-            LobbyPillButton(title: "Join a Lobby", action: { showJoinSheet = true },font: .title3, style: .dark)
+            LobbyPillButton(title: "Create a Room", action: { showHostSheet = true },font: .title3, style: .primary)
+            LobbyPillButton(title: "Join a Friend", action: { showJoinSheet = true },font: .title3, style: .secondary)
         }
         .padding(.horizontal, 40)
         .padding(.top, 70)
         .padding(.bottom, 60)
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .overlay(alignment: .topTrailing) {
             CircularIconButton(title: "How to play", systemImage: "questionmark",
                                action: { showHelp = true }, diameter: 48)
@@ -92,9 +93,9 @@ private struct HomeCardShowcase: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let width = min(geometry.size.width * 0.62,
-                            geometry.size.height / 1.35 * 0.85,
-                            260)
+            let width = min(geometry.size.width * 0.72,
+                            geometry.size.height / 1.35 * 0.95,
+                            320)
             let height = width * 1.35
 
             CardDeck(

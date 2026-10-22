@@ -12,10 +12,11 @@ import SwiftUI
 struct ReviewDeckView: View {
     @ObservedObject var deck: CardDeckState<ReviewItem>
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let ownerName: String
 
     var body: some View {
         GeometryReader { geometry in
-            let width = min(geometry.size.width * 0.72, 340)
+            let width = min(geometry.size.width * 0.8, 380)
             let height = width * 1.35
 
             ScrollView {
@@ -36,6 +37,8 @@ struct ReviewDeckView: View {
                         ReviewCardFace(
                             question: item.question,
                             answer: item.answer,
+                            ownerName: ownerName,
+                            difficulty: item.difficulty,
                             width: width,
                             height: height
                         )
